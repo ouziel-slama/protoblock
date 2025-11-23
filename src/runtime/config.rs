@@ -439,18 +439,23 @@ mod tests {
     #[test]
     fn metrics_interval_can_be_overridden() {
         let interval = Duration::from_secs(30);
+        let queue_max_size_mb = 1024;
+        let request_override = estimate_request_body_bytes(8);
+        let max_block_hex_bytes = BITCOIN_MAX_BLOCK_BYTES * 2;
+        let min_response_bytes = single_block_response_body_bytes(max_block_hex_bytes);
+        let response_override = min_response_bytes.saturating_add(1_048_576);
         let config = base_builder()
             .metrics_interval(interval)
-            .queue_max_size_mb(1024)
-            .rpc_max_request_body_bytes(512)
-            .rpc_max_response_body_bytes(2048)
+            .queue_max_size_mb(queue_max_size_mb)
+            .rpc_max_request_body_bytes(request_override)
+            .rpc_max_response_body_bytes(response_override)
             .start_height(0)
             .build()
             .expect("config should build");
         assert_eq!(config.metrics_interval(), interval);
-        assert_eq!(config.queue_max_size_mb(), 1024);
-        assert_eq!(config.rpc_max_request_body_bytes(), 512);
-        assert_eq!(config.rpc_max_response_body_bytes(), 2048);
+        assert_eq!(config.queue_max_size_mb(), queue_max_size_mb);
+        assert_eq!(config.rpc_max_request_body_bytes(), request_override);
+        assert_eq!(config.rpc_max_response_body_bytes(), response_override);
     }
 
     #[test]

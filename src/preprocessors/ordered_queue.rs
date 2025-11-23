@@ -190,11 +190,11 @@ impl<T> Default for OrderedBlockQueue<T> {
 pub(super) mod test_hooks {
     use once_cell::sync::Lazy;
     use std::sync::{Arc, Mutex};
-    use tokio::sync::Notify;
+    use tokio::sync::{oneshot, Notify};
 
     #[derive(Clone)]
     pub struct GapProbe {
-        pub entered: Arc<Notify>,
+        pub entered_signal: Arc<Mutex<Option<oneshot::Sender<()>>>>,
         pub resume: Arc<Notify>,
     }
 
@@ -217,7 +217,9 @@ pub(super) mod test_hooks {
         let probe = { GAP_PROBE.lock().unwrap().clone() };
 
         if let Some(probe) = probe {
-            probe.entered.notify_waiters();
+            if let Some(sender) = probe.entered_signal.lock().unwrap().take() {
+                let _ = sender.send(());
+            }
             probe.resume.notified().await;
 
             // Ensure the probe only pauses a single gap so other tests are not impacted.
@@ -225,7 +227,7 @@ pub(super) mod test_hooks {
             let same_probe = guard
                 .as_ref()
                 .map(|current| {
-                    Arc::ptr_eq(&current.entered, &probe.entered)
+                    Arc::ptr_eq(&current.entered_signal, &probe.entered_signal)
                         && Arc::ptr_eq(&current.resume, &probe.resume)
                 })
                 .unwrap_or(false);
@@ -243,7 +245,8 @@ mod tests {
     use crate::preprocessors::block::PreProcessedBlock;
     use bitcoin::hashes::Hash;
     use bitcoin::BlockHash;
-    use std::sync::Arc;
+    use std::sync::{Arc, Mutex};
+    use tokio::sync::oneshot;
     use tokio::time::{sleep, timeout, Duration};
 
     fn dummy_hash(seed: u8) -> BlockHash {
@@ -472,17 +475,19 @@ mod tests {
         let queue = Arc::new(OrderedBlockQueue::new());
         queue.reset_expected(0).await;
 
-        let entered = Arc::new(Notify::new());
         let resume = Arc::new(Notify::new());
+        let (entered_tx, entered_rx) = oneshot::channel();
         let _probe_guard = super::test_hooks::install_gap_probe(super::test_hooks::GapProbe {
-            entered: entered.clone(),
+            entered_signal: Arc::new(Mutex::new(Some(entered_tx))),
             resume: resume.clone(),
         });
 
         let cloned = queue.clone();
         let pop_future = tokio::spawn(async move { cloned.pop_next().await.height() });
 
-        entered.notified().await;
+        entered_rx
+            .await
+            .expect("gap probe should signal waiter registration");
         queue.push(make_block(0), TEST_BLOCK_BYTES).await;
         resume.notify_waiters();
 
