@@ -104,10 +104,18 @@ impl<P: BlockProtocol> Clone for ProcessingHandles<P> {
 }
 
 impl<P: BlockProtocol> BlocksFetcher<P> {
+    /// Creates a new block fetcher with the given configuration and protocol.
+    ///
+    /// The fetcher creates its own root cancellation token. Use [`Self::with_cancellation_token`]
+    /// if you need to integrate with an existing shutdown mechanism.
     pub fn new(config: FetcherConfig, protocol: P) -> Self {
         Self::with_cancellation_token(config, protocol, CancellationToken::new())
     }
 
+    /// Creates a new block fetcher with the given configuration, protocol, and shutdown token.
+    ///
+    /// The shutdown token is used to derive per-run cancellation tokens for workers and the
+    /// processing loop.
     pub fn with_cancellation_token(
         config: FetcherConfig,
         protocol: P,
@@ -153,26 +161,34 @@ impl<P: BlockProtocol> BlocksFetcher<P> {
         }
     }
 
+    /// Returns a reference to the fetcher's configuration.
     pub fn config(&self) -> &FetcherConfig {
         &self.config
     }
 
+    /// Returns a reference to the ordered block queue.
     pub fn queue(&self) -> &Arc<OrderedBlockQueue<P::PreProcessed>> {
         &self.queue
     }
 
+    /// Returns a reference to the protocol instance wrapped in an `RwLock`.
     pub fn protocol(&self) -> &Arc<RwLock<P>> {
         &self.protocol
     }
 
+    /// Returns a reference to the worker task handles.
     pub fn workers(&self) -> &Vec<JoinHandle<()>> {
         self.worker_pool.handles()
     }
 
+    /// Returns the last height confirmed by the processing loop.
+    ///
+    /// Returns `None` if no blocks have been processed yet.
     pub fn last_confirmed_height(&self) -> Option<u64> {
         self.progress.last_confirmed()
     }
 
+    /// Returns a clone of the telemetry handle for observability.
     pub fn telemetry(&self) -> Arc<Telemetry> {
         self.telemetry.clone()
     }
@@ -187,10 +203,14 @@ impl<P: BlockProtocol> BlocksFetcher<P> {
         self.shutdown_root = shutdown;
     }
 
+    /// Starts the fetcher pipeline from the configured start height.
     pub async fn start(&mut self) -> Result<()> {
         self.start_from(self.config.start_height()).await
     }
 
+    /// Starts the fetcher pipeline from the specified height.
+    ///
+    /// Returns an error if the fetcher is already running.
     pub async fn start_from(&mut self, start_height: u64) -> Result<()> {
         if self.running {
             bail!("fetcher already running");
@@ -323,6 +343,10 @@ impl<P: BlockProtocol> BlocksFetcher<P> {
         Ok(())
     }
 
+    /// Stops the fetcher pipeline gracefully.
+    ///
+    /// Cancels workers, drains the processing loop, and invokes the protocol's shutdown hook.
+    /// Returns any error encountered during shutdown.
     pub async fn stop(&mut self) -> Result<()> {
         if !self.running {
             return Ok(());

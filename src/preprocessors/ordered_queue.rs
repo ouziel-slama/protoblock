@@ -26,6 +26,9 @@ impl<T> QueueState<T> {
 }
 
 /// Async queue that only releases blocks in the expected order.
+///
+/// Enforces strictly sequential block delivery and applies backpressure when the configured
+/// byte capacity is exceeded.
 pub struct OrderedBlockQueue<T> {
     state: Mutex<QueueState<T>>,
     notify: Notify,
@@ -33,18 +36,26 @@ pub struct OrderedBlockQueue<T> {
 }
 
 impl<T> OrderedBlockQueue<T> {
+    /// Creates a new queue starting at height 0 with unlimited capacity.
     pub fn new() -> Self {
         Self::with_start_and_capacity(0, usize::MAX)
     }
 
+    /// Creates a new queue starting at the specified height with unlimited capacity.
     pub fn with_start(next_expected: u64) -> Self {
         Self::with_start_and_capacity(next_expected, usize::MAX)
     }
 
+    /// Creates a new queue starting at height 0 with the specified byte capacity.
     pub fn with_capacity(max_bytes: usize) -> Self {
         Self::with_start_and_capacity(0, max_bytes)
     }
 
+    /// Creates a new queue with the specified starting height and byte capacity.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `max_bytes` is zero.
     pub fn with_start_and_capacity(next_expected: u64, max_bytes: usize) -> Self {
         assert!(max_bytes > 0, "max_bytes must be greater than zero");
         Self {
@@ -54,6 +65,9 @@ impl<T> OrderedBlockQueue<T> {
         }
     }
 
+    /// Enqueues a block, blocking if the queue is at capacity.
+    ///
+    /// The block with height equal to `next_expected` bypasses the capacity limit to prevent deadlock.
     pub async fn push(&self, block: PreProcessedBlock<T>, size_bytes: usize) {
         let mut pending_block = Some(block);
         loop {
@@ -83,6 +97,9 @@ impl<T> OrderedBlockQueue<T> {
         }
     }
 
+    /// Waits for and returns the next expected block in sequence.
+    ///
+    /// Blocks until the expected block is available.
     pub async fn pop_next(&self) -> PreProcessedBlock<T> {
         loop {
             if let Some(block) = self.try_pop_next().await {
@@ -102,6 +119,9 @@ impl<T> OrderedBlockQueue<T> {
         }
     }
 
+    /// Attempts to pop the next expected block without blocking.
+    ///
+    /// Returns `None` if the expected block is not yet available.
     pub async fn try_pop_next(&self) -> Option<PreProcessedBlock<T>> {
         let mut state = self.state.lock().await;
         let expected = state.next_expected;
@@ -115,6 +135,7 @@ impl<T> OrderedBlockQueue<T> {
         }
     }
 
+    /// Removes all blocks from the queue and resets the byte counter.
     pub async fn clear(&self) {
         let mut state = self.state.lock().await;
         state.blocks.clear();
@@ -123,6 +144,10 @@ impl<T> OrderedBlockQueue<T> {
         self.notify.notify_waiters();
     }
 
+    /// Resets the expected height and discards incompatible blocks.
+    ///
+    /// When rewinding (new height < current), all blocks are dropped.
+    /// When fast-forwarding (new height > current), blocks below the new height are dropped.
     pub async fn reset_expected(&self, height: u64) {
         let mut state = self.state.lock().await;
         let previous_expected = state.next_expected;
@@ -158,23 +183,28 @@ impl<T> OrderedBlockQueue<T> {
         self.notify.notify_waiters();
     }
 
+    /// Returns the number of blocks currently in the queue.
     pub async fn len(&self) -> usize {
         self.state.lock().await.blocks.len()
     }
 
+    /// Returns the total number of bytes currently held in the queue.
     pub async fn bytes(&self) -> usize {
         self.state.lock().await.total_bytes
     }
 
+    /// Returns `true` if the queue contains no blocks.
     pub async fn is_empty(&self) -> bool {
         self.state.lock().await.blocks.is_empty()
     }
 
+    /// Returns `true` if the next expected block is ready to be popped.
     pub async fn has_ready_block(&self) -> bool {
         let state = self.state.lock().await;
         state.blocks.contains_key(&state.next_expected)
     }
 
+    /// Returns the height of the next expected block.
     pub async fn next_expected(&self) -> u64 {
         self.state.lock().await.next_expected
     }

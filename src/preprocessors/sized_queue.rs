@@ -1,3 +1,4 @@
+use bitcoin::Block;
 use bytes::{Bytes, BytesMut};
 use std::borrow::Cow;
 use std::rc::Rc;
@@ -156,6 +157,13 @@ impl_tuple_queue_bytes!(A, B);
 impl_tuple_queue_bytes!(A, B, C);
 impl_tuple_queue_bytes!(A, B, C, D);
 impl_tuple_queue_bytes!(A, B, C, D, E);
+
+impl QueueByteSize for Block {
+    fn queue_bytes(&self) -> usize {
+        // Use the serialized consensus encoding as an upper bound for retained bytes.
+        bitcoin::consensus::serialize(self).len()
+    }
+}
 
 #[cfg(test)]
 mod tests {

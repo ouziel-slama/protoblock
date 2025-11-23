@@ -12,6 +12,7 @@ pub struct PreProcessedBlock<T> {
 }
 
 impl<T> PreProcessedBlock<T> {
+    /// Creates a new `PreProcessedBlock` with the given metadata and data.
     pub fn new(height: u64, block_hash: BlockHash, previous_hash: BlockHash, data: T) -> Self {
         Self {
             height,
@@ -21,26 +22,32 @@ impl<T> PreProcessedBlock<T> {
         }
     }
 
+    /// Returns the block height.
     pub fn height(&self) -> u64 {
         self.height
     }
 
+    /// Returns a reference to the block hash.
     pub fn block_hash(&self) -> &BlockHash {
         &self.block_hash
     }
 
+    /// Returns a reference to the previous block hash.
     pub fn previous_hash(&self) -> &BlockHash {
         &self.previous_hash
     }
 
+    /// Returns a reference to the pre-processed data.
     pub fn data(&self) -> &T {
         &self.data
     }
 
+    /// Consumes the wrapper and returns the inner pre-processed data.
     pub fn into_inner(self) -> T {
         self.data
     }
 
+    /// Maps the pre-processed data to a new type while preserving the block metadata.
     pub fn map<U, F>(self, f: F) -> PreProcessedBlock<U>
     where
         F: FnOnce(T) -> U,

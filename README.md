@@ -42,7 +42,7 @@ Protoblock is an asynchronous Bitcoin block ingestion pipeline. It multiplexes J
 
 Below is a minimal example that prints block metadata while keeping the heavy lifting inside Protoblock.
 
-```rust
+```rust,no_run
 use anyhow::Result;
 use bitcoin::Block;
 use protoblock::{

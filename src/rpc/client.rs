@@ -24,11 +24,16 @@ use serde::de::DeserializeOwned;
 use std::{fmt, future::Future, str::FromStr, sync::Arc, time::Duration};
 use tokio::time::{sleep, timeout, Instant};
 
+/// Errors that can occur during RPC operations.
 #[derive(Debug)]
 pub enum RpcError {
+    /// The RPC call exceeded the configured timeout.
     Timeout { method: &'static str },
+    /// The circuit breaker is open and refusing requests.
     CircuitOpen,
+    /// The requested block height is beyond the current blockchain tip.
     HeightOutOfRange { height: u64 },
+    /// The RPC response exceeded the maximum allowed size.
     ResponseTooLarge { method: &'static str },
 }
 
@@ -49,13 +54,20 @@ impl std::fmt::Display for RpcError {
 
 impl std::error::Error for RpcError {}
 
+/// Trait for fetching batches of blocks from a Bitcoin node.
+///
+/// This trait is implemented by [`AsyncRpcClient`] and can be mocked for testing.
 pub trait BlockBatchClient: Send + Sync {
+    /// Fetches blocks at the specified heights, returning them as hex-encoded strings.
     fn batch_get_blocks<'a>(
         &'a self,
         heights: &'a [u64],
     ) -> BoxFuture<'a, Result<Vec<(u64, String)>>>;
 }
 
+/// Asynchronous JSON-RPC client for interacting with Bitcoin Core nodes.
+///
+/// Supports batching, retries, circuit breaking, and observability through metrics.
 #[derive(Debug, Clone)]
 pub struct AsyncRpcClient {
     rpc_url: Arc<String>,
@@ -77,6 +89,7 @@ impl BlockBatchClient for AsyncRpcClient {
 }
 
 impl AsyncRpcClient {
+    /// Creates a new RPC client with default options.
     pub fn new(
         url: impl Into<String>,
         user: impl Into<String>,
@@ -85,6 +98,7 @@ impl AsyncRpcClient {
         Self::with_options(url, user, password, RpcClientOptions::default())
     }
 
+    /// Creates a new RPC client with custom options.
     pub fn with_options(
         url: impl Into<String>,
         user: impl Into<String>,
@@ -100,6 +114,7 @@ impl AsyncRpcClient {
         )
     }
 
+    /// Creates a new RPC client with custom options and a circuit breaker.
     pub fn with_options_and_breaker(
         url: impl Into<String>,
         user: impl Into<String>,
@@ -137,10 +152,12 @@ impl AsyncRpcClient {
         })
     }
 
+    /// Creates a new RPC client from a fetcher configuration.
     pub fn from_config(config: &FetcherConfig) -> Result<Self> {
         Self::from_config_with_breaker(config, Arc::new(RpcCircuitBreaker::default()))
     }
 
+    /// Creates a new RPC client from a fetcher configuration with a custom circuit breaker.
     pub fn from_config_with_breaker(
         config: &FetcherConfig,
         breaker: Arc<RpcCircuitBreaker>,

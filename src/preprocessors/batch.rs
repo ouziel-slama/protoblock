@@ -9,6 +9,9 @@ pub struct BatchSizer {
 }
 
 impl BatchSizer {
+    /// Creates a new `BatchSizer` with the specified maximum batch size in megabytes.
+    ///
+    /// The batch size starts at 1 block and grows adaptively based on observed payload sizes.
     pub fn new(max_batch_size_mb: usize) -> Self {
         Self {
             max_batch_size_mb: max_batch_size_mb.max(1),
@@ -16,6 +19,10 @@ impl BatchSizer {
         }
     }
 
+    /// Adjusts the batch size based on the total bytes received in the last batch.
+    ///
+    /// If the batch is under the target size, the batch size grows. If it exceeds the target,
+    /// the batch size shrinks. The batch size is clamped between 1 and 1024 blocks.
     pub fn adjust(&mut self, total_bytes: usize) {
         let max_bytes = self.max_batch_size_mb.saturating_mul(BYTES_PER_MB);
 
@@ -26,16 +33,23 @@ impl BatchSizer {
         }
     }
 
+    /// Returns the current batch size (number of blocks to fetch).
     pub fn get_size(&self) -> usize {
         self.current_batch_size
     }
 
+    /// Halves the batch size in response to an RPC failure.
+    ///
+    /// The batch size never drops below 1.
     pub fn shrink_on_failure(&mut self) {
         if self.current_batch_size > 1 {
             self.current_batch_size = (self.current_batch_size / 2).max(1);
         }
     }
 
+    /// Shrinks the batch size to one quarter in response to an oversized payload.
+    ///
+    /// The batch size never drops below 1.
     pub fn shrink_for_oversize(&mut self) {
         if self.current_batch_size > 1 {
             let quarter = self.current_batch_size / 4;
@@ -43,6 +57,7 @@ impl BatchSizer {
         }
     }
 
+    /// Returns the configured maximum batch size in megabytes.
     pub fn max_batch_size_mb(&self) -> usize {
         self.max_batch_size_mb
     }

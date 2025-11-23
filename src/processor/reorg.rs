@@ -31,6 +31,9 @@ pub struct ReorgWindow {
 }
 
 impl ReorgWindow {
+    /// Creates a new reorg window with the specified size limit.
+    ///
+    /// The limit is clamped to a minimum of 1.
     pub fn new(limit: usize) -> Self {
         Self {
             limit: limit.max(1),
@@ -38,18 +41,22 @@ impl ReorgWindow {
         }
     }
 
+    /// Returns the number of blocks currently stored in the window.
     pub fn len(&self) -> usize {
         self.items.len()
     }
 
+    /// Returns the configured size limit of the window.
     pub fn limit(&self) -> usize {
         self.limit
     }
 
+    /// Returns `true` if the window contains no blocks.
     pub fn is_empty(&self) -> bool {
         self.items.is_empty()
     }
 
+    /// Adds a block to the window, evicting the oldest entry if the limit is reached.
     pub fn push(&mut self, height: u64, hash: BlockHash) {
         self.items.push_back((height, hash));
         if self.items.len() > self.limit {
@@ -57,6 +64,9 @@ impl ReorgWindow {
         }
     }
 
+    /// Searches for a block hash in the window and returns its height if found.
+    ///
+    /// The search starts from the most recent block.
     pub fn find_hash(&self, hash: &BlockHash) -> Option<u64> {
         self.items
             .iter()
@@ -65,8 +75,9 @@ impl ReorgWindow {
             .map(|(height, _)| *height)
     }
 
+    /// Removes all blocks from the window.
     pub fn clear(&mut self) {
-        self.items.clear();
+        self.items.clear()
     }
 
     /// Removes entries whose height is greater than the provided value while keeping
@@ -77,6 +88,7 @@ impl ReorgWindow {
         }
     }
 
+    /// Returns an iterator over the blocks in the window.
     pub fn iter(&self) -> impl Iterator<Item = &(u64, BlockHash)> {
         self.items.iter()
     }

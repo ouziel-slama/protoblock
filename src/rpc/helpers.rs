@@ -4,11 +4,18 @@
 use anyhow::{Context, Result};
 use bitcoin::{consensus, Block, BlockHash};
 
+/// Decodes a hexadecimal string into a Bitcoin [`Block`].
+///
+/// The input string is trimmed before decoding. Returns an error if the hex is invalid
+/// or the deserialization fails.
 pub fn hex_to_block(hex: &str) -> Result<Block> {
     let bytes = hex::decode(hex.trim()).context("invalid block hex")?;
     consensus::deserialize::<Block>(&bytes).context("failed to deserialize block bytes")
 }
 
+/// Extracts the current block hash and previous block hash from a [`Block`].
+///
+/// Returns a tuple of `(block_hash, previous_hash)`.
 pub fn extract_hashes(block: &Block) -> (BlockHash, BlockHash) {
     (block.block_hash(), block.header.prev_blockhash)
 }

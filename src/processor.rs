@@ -1,3 +1,6 @@
+//! Processor orchestration covering fetch loops, lifecycle management, reorg
+//! handling, and worker pool coordination.
+
 pub mod backoff;
 pub mod fetcher;
 pub mod lifecycle;

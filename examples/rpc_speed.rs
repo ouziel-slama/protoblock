@@ -1,3 +1,32 @@
+//! RPC speed benchmark example.
+//!
+//! This example measures raw RPC throughput and worker scheduling overhead by running
+//! a no-op protocol that discards blocks immediately after fetching them. A live progress
+//! bar tracks the current blockchain tip and updates in real-time until you press Ctrl-C.
+//!
+//! # Configuration
+//!
+//! All settings can be controlled via environment variables:
+//! - `PROTOBLOCK_RPC_URL` – RPC endpoint URL (default: http://localhost:8332)
+//! - `PROTOBLOCK_RPC_USER` – RPC username (default: rpc)
+//! - `PROTOBLOCK_RPC_PASSWORD` – RPC password (default: rpc)
+//! - `PROTOBLOCK_START_HEIGHT` – Starting block height (default: 0)
+//! - `PROTOBLOCK_THREAD_COUNT` – Number of worker threads (default: 4)
+//! - `PROTOBLOCK_MAX_BATCH_MB` – Max batch size in MB (default: 10)
+//! - `PROTOBLOCK_QUEUE_MB` – Queue capacity in MB (default: 4096)
+//! - `PROTOBLOCK_REORG_WINDOW` – Reorg window size (default: 12)
+//! - `PROTOBLOCK_MAX_REQUEST_MB` – Max request body size in MB (default: 20)
+//! - `PROTOBLOCK_MAX_RESPONSE_MB` – Max response body size in MB (default: 20)
+//!
+//! # Usage
+//!
+//! ```bash
+//! export PROTOBLOCK_RPC_URL="http://127.0.0.1:8332"
+//! export PROTOBLOCK_START_HEIGHT=830000
+//! export PROTOBLOCK_THREAD_COUNT=8
+//! cargo run --example rpc_speed
+//! ```
+
 use std::env;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU64, Ordering};

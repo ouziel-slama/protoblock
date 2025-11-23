@@ -1,3 +1,6 @@
+//! JSON-RPC client plumbing: authentication, circuit breaker, batching,
+//! metrics, retry policy, and helper utilities.
+
 pub mod auth;
 pub mod circuit_breaker;
 pub mod client;
