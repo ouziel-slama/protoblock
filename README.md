@@ -1,5 +1,11 @@
 # Protoblock
 
+[![Tests](https://github.com/ouziel-slama/protoblock/actions/workflows/tests.yml/badge.svg)](https://github.com/ouziel-slama/protoblock/actions/workflows/tests.yml)
+[![Coverage](https://github.com/ouziel-slama/protoblock/actions/workflows/coverage.yml/badge.svg)](https://github.com/ouziel-slama/protoblock/actions/workflows/coverage.yml)
+[![Format](https://github.com/ouziel-slama/protoblock/actions/workflows/fmt.yml/badge.svg)](https://github.com/ouziel-slama/protoblock/actions/workflows/fmt.yml)
+[![Clippy](https://github.com/ouziel-slama/protoblock/actions/workflows/clippy.yml/badge.svg)](https://github.com/ouziel-slama/protoblock/actions/workflows/clippy.yml)
+[![Publish Crate](https://github.com/ouziel-slama/protoblock/actions/workflows/publish.yml/badge.svg)](https://github.com/ouziel-slama/protoblock/actions/workflows/publish.yml)
+
 Protoblock is an asynchronous Bitcoin block ingestion pipeline. It multiplexes JSON-RPC batch calls across a pool of workers, pre-processes blocks with user-defined logic, and feeds an ordered queue that guarantees strictly increasing heights before executing stateful `BlockProtocol` hooks. The crate focuses on correctness under reorgs, graceful shutdown, and observability so downstream consumers can build reliable backfills or live processors on top of it.
 
 ## Installation
