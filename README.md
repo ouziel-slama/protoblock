@@ -193,3 +193,7 @@ If you previously instantiated `FetcherConfig` via a struct literal, switch to t
 
 Both documents complement this README and complete the Phase 7 documentation checklist.
 
+## License
+
+Protoblock is dual-licensed under the MIT License (`LICENSE-MIT`) or the Apache License, Version 2.0 (`LICENSE-APACHE`), matching the approach used in `rollblock`. You may choose either license to use, copy, modify, and distribute this project.
+
