@@ -8,6 +8,7 @@ jobs:
   coverage:
     name: cargo llvm-cov
     runs-on: ubuntu-latest
+    environment: default
 
     steps:
       - name: Checkout sources
