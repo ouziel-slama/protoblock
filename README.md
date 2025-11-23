@@ -60,6 +60,8 @@ impl BlockProtocol for LoggingProtocol {
         block: Block,
         height: u64,
     ) -> ProtocolPreProcessFuture<Self::PreProcessed> {
+        // This async hook runs in parallel across workers; its Ok result becomes
+        // the `process` input once the ordered queue releases this height.
         Box::pin(async move {
             tracing::info!(height, txs = block.txdata.len(), "downloaded block");
             Ok(block)
