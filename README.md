@@ -133,8 +133,8 @@ export PROTOBLOCK_THREAD_COUNT=8                    # optional (default 4)
 export PROTOBLOCK_MAX_BATCH_MB=8                    # optional (default 4)
 export PROTOBLOCK_QUEUE_MB=8192                     # optional (default 200)
 export PROTOBLOCK_REORG_WINDOW=24                   # optional (default 12)
-export PROTOBLOCK_MAX_REQUEST_MB=10                 # optional (default 10)
-export PROTOBLOCK_MAX_RESPONSE_MB=10                # optional (default 10)
+export PROTOBLOCK_MAX_REQUEST_MB=20                 # optional (default 20)
+export PROTOBLOCK_MAX_RESPONSE_MB=20                # optional (default 20)
 cargo run --example rpc_speed
 ```
 
