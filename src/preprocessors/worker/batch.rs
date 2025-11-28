@@ -327,7 +327,7 @@ impl<P: crate::runtime::protocol::BlockProtocol> Worker<P> {
                             self.batch_sizer.shrink_for_oversize();
                             self.record_oversized_payload_hint(requested);
                             *consecutive_failures = 0;
-                            tracing::warn!(
+                            tracing::info!(
                                 worker = self.id,
                                 start_height,
                                 requested,

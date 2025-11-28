@@ -185,7 +185,7 @@ impl<'a> RetryContext<'a> {
 
     pub(crate) fn log_oversized(&self, attempt: usize, method: &str) {
         if let Some(message) = self.messages.oversized {
-            log_with_retry_ctx!(warn, self, attempt, method = method, "{}", message);
+            log_with_retry_ctx!(info, self, attempt, method = method, "{}", message);
         }
     }
 }
