@@ -108,7 +108,9 @@ impl<T> OrderedBlockQueue<T> {
             }
             #[cfg(test)]
             {
-                test_hooks::pause_in_gap().await;
+                // Provide a queue-specific identifier so gap probes only pause targeted queues.
+                let queue_id = self as *const _ as usize;
+                test_hooks::pause_in_gap(queue_id).await;
             }
             let notified = self.notify.notified();
             if let Some(block) = self.try_pop_next().await {
@@ -224,6 +226,7 @@ pub(super) mod test_hooks {
 
     #[derive(Clone)]
     pub struct GapProbe {
+        pub target_queue: usize,
         pub entered_signal: Arc<Mutex<Option<oneshot::Sender<()>>>>,
         pub resume: Arc<Notify>,
     }
@@ -243,10 +246,14 @@ pub(super) mod test_hooks {
         GapProbeGuard
     }
 
-    pub async fn pause_in_gap() {
+    pub async fn pause_in_gap(queue_id: usize) {
         let probe = { GAP_PROBE.lock().unwrap().clone() };
 
         if let Some(probe) = probe {
+            if probe.target_queue != queue_id {
+                return;
+            }
+
             if let Some(sender) = probe.entered_signal.lock().unwrap().take() {
                 let _ = sender.send(());
             }
@@ -507,7 +514,9 @@ mod tests {
 
         let resume = Arc::new(Notify::new());
         let (entered_tx, entered_rx) = oneshot::channel();
+        let target_queue = Arc::as_ptr(&queue) as usize;
         let _probe_guard = super::test_hooks::install_gap_probe(super::test_hooks::GapProbe {
+            target_queue,
             entered_signal: Arc::new(Mutex::new(Some(entered_tx))),
             resume: resume.clone(),
         });
