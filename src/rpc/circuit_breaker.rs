@@ -159,7 +159,7 @@ impl RpcCircuitBreaker {
 
     fn transition(&self, state: &mut BreakerState, next: CircuitState) {
         if state.state != next {
-            tracing::warn!(
+            tracing::info!(
                 previous = ?state.state,
                 next = ?next,
                 consecutive_failures = state.consecutive_failures,

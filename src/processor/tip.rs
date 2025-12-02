@@ -81,7 +81,7 @@ impl TipTracker {
                                 last_tip = Some(tip);
                             }
                             Err(err) => {
-                                tracing::warn!(error = %err, "failed to refresh blockchain tip");
+                                tracing::info!(error = %err, "failed to refresh blockchain tip");
                             }
                         }
                     }

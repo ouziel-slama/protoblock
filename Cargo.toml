@@ -1,6 +1,6 @@
 [package]
 name = "protoblock"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 authors = ["Ouziel Slama <ouziel.slama@gmail.com>"]
 description = "Asynchronous Bitcoin block ingestion pipeline with built-in reorg handling, backpressure, and observability"

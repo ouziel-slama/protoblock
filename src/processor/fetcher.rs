@@ -241,7 +241,7 @@ impl<P: BlockProtocol> BlocksFetcher<P> {
         self.progress.reset(start_height);
 
         if let Err(err) = Self::refresh_tip_once(&rpc_client, &self.blockchain_tip).await {
-            tracing::warn!(error = %err, "failed to fetch initial blockchain tip; continuing without guard until refresh succeeds");
+            tracing::info!(error = %err, "failed to fetch initial blockchain tip; continuing without guard until refresh succeeds");
         }
         let tip_hint = self.blockchain_tip.current();
         let lifecycle = LifecycleHandles::spawn::<P>(LifecycleSpawnParams {

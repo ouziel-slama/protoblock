@@ -214,7 +214,7 @@ impl<P: crate::runtime::protocol::BlockProtocol> Worker<P> {
                     }
                 }
                 PlanResult::Exhausted => {
-                    tracing::warn!(
+                    tracing::info!(
                         worker = self.id,
                         "calculated empty batch; shutting worker down"
                     );
@@ -356,7 +356,7 @@ impl<P: crate::runtime::protocol::BlockProtocol> Worker<P> {
                                 self.telemetry.record_rpc_error();
                             }
                             let delay = retry_delay(*consecutive_failures);
-                            tracing::warn!(
+                            tracing::info!(
                                 worker = self.id,
                                 attempts = *consecutive_failures,
                                 backoff_ms = delay.as_millis() as u64,

@@ -88,7 +88,7 @@ impl<'a> RetryContext<'a> {
     }
 
     pub(crate) fn log_circuit_open(&self) {
-        log_with_retry_ctx!(warn, self, "{}", self.messages.circuit_open);
+        log_with_retry_ctx!(info, self, "{}", self.messages.circuit_open);
     }
 
     pub(crate) fn log_tip(&self, attempt: usize, height: u64) {
@@ -102,7 +102,7 @@ impl<'a> RetryContext<'a> {
         if self.messages.timeout_includes_backoff {
             if let Some(method) = method {
                 log_with_retry_ctx!(
-                    warn,
+                    info,
                     self,
                     attempt,
                     method = method,
@@ -112,7 +112,7 @@ impl<'a> RetryContext<'a> {
                 );
             } else {
                 log_with_retry_ctx!(
-                    warn,
+                    info,
                     self,
                     attempt,
                     backoff_ms = backoff_ms,
@@ -122,7 +122,7 @@ impl<'a> RetryContext<'a> {
             }
         } else if let Some(method) = method {
             log_with_retry_ctx!(
-                warn,
+                info,
                 self,
                 attempt,
                 method = method,
@@ -130,7 +130,7 @@ impl<'a> RetryContext<'a> {
                 self.messages.timeout
             );
         } else {
-            log_with_retry_ctx!(warn, self, attempt, "{}", self.messages.timeout);
+            log_with_retry_ctx!(info, self, attempt, "{}", self.messages.timeout);
         }
     }
 
@@ -138,7 +138,7 @@ impl<'a> RetryContext<'a> {
         let backoff_ms = Self::duration_to_millis(backoff);
         if self.messages.retry_includes_timeout_flag {
             log_with_retry_ctx!(
-                warn,
+                info,
                 self,
                 attempt,
                 backoff_ms = backoff_ms,
@@ -149,7 +149,7 @@ impl<'a> RetryContext<'a> {
             );
         } else {
             log_with_retry_ctx!(
-                warn,
+                info,
                 self,
                 attempt,
                 backoff_ms = backoff_ms,

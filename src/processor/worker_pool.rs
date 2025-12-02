@@ -280,7 +280,7 @@ pub(crate) async fn broadcast_control_signal(
 ) {
     for (worker_id, tx) in senders.iter().enumerate() {
         if let Err(err) = tx.send(message.clone()).await {
-            tracing::warn!(
+            tracing::info!(
                 worker = worker_id,
                 error = %err,
                 "failed to deliver control signal to worker"
