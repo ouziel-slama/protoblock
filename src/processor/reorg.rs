@@ -191,7 +191,7 @@ impl<P: BlockProtocol> ReorgManager<P> {
 
         let mut effective_tip = available_tip;
 
-        if last_confirmed <= effective_tip && refresh_tip {
+        if refresh_tip {
             match tokio::select! {
                 _ = shutdown.cancelled() => Err(anyhow!("tip refresh cancelled")),
                 result = self.handles.rpc_client.get_blockchain_tip() => result,

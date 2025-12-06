@@ -903,7 +903,7 @@ dependencies = [
 
 [[package]]
 name = "protoblock"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "anyhow",
  "base64",
